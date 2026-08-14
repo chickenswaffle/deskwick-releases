@@ -382,8 +382,15 @@ sudo systemctl restart deskwick</code></pre>
             <p>
               The Pi presents itself as a real USB keyboard, so there's nothing
               to install on the other machine. Cable its USB-C port to your
-              computer and power the Pi from the GPIO pins instead.
+              computer and power the Pi from the GPIO pins instead — USB-C
+              becomes the data link.
             </p>
+            <p style="margin-top: 10px">
+              Off by default, since it repurposes the power port. Turn it on
+              once:
+            </p>
+            <pre style="margin: 8px 0 0"><code>sudo /opt/deskwick/deploy/kiosk-setup.sh --usb
+sudo reboot</code></pre>
           </div>
           <div class="card">
             <h3>Over the network</h3>
