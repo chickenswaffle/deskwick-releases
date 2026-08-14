@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Desk Wick</title>
+    <meta
+      name="description"
+      content="A touchscreen market terminal and macropad for Raspberry Pi. Flash it, boot it, done."
+    />
+    <style>
+      :root {
+        --ink: #06070a;
+        --panel: #0e1118;
+        --panel-2: #151a24;
+        --edge: #212836;
+        --text: #e6e9ef;
+        --muted: #7b8496;
+        --accent: #38bdf8;
+        --up: #22c55e;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--ink);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .wrap {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* Hero */
+      header {
+        padding: 88px 0 56px;
+        border-bottom: 1px solid var(--edge);
+        background:
+          radial-gradient(60rem 30rem at 50% -12rem, rgba(56, 189, 248, 0.13), transparent 70%);
+      }
+
+      h1 {
+        font-size: clamp(2.6rem, 8vw, 4rem);
+        margin: 0;
+        letter-spacing: -0.03em;
+        font-weight: 650;
+      }
+
+      .tagline {
+        color: var(--muted);
+        font-size: clamp(1rem, 2.5vw, 1.2rem);
+        margin: 14px 0 0;
+        max-width: 34rem;
+      }
+
+      .cta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        margin-top: 36px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--accent);
+        color: #04131c;
+        font-weight: 640;
+        text-decoration: none;
+        padding: 13px 24px;
+        border-radius: 10px;
+        font-size: 1.02rem;
+        transition: filter 0.15s ease;
+      }
+
+      .btn:hover { filter: brightness(1.1); }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--edge);
+        font-weight: 500;
+      }
+
+      .meta {
+        color: var(--muted);
+        font-size: 0.82rem;
+        margin-top: 14px;
+      }
+
+      /* Sections */
+      section { padding: 56px 0; border-bottom: 1px solid var(--edge); }
+
+      h2 {
+        font-size: 1.3rem;
+        margin: 0 0 8px;
+        letter-spacing: -0.01em;
+      }
+
+      .lede { color: var(--muted); margin: 0 0 28px; max-width: 42rem; }
+
+      /* Screenshots */
+      .shots {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+
+      figure { margin: 0; }
+
+      figure img {
+        width: 100%;
+        display: block;
+        border: 1px solid var(--edge);
+        border-radius: 10px;
+        background: var(--panel);
+      }
+
+      figcaption {
+        color: var(--muted);
+        font-size: 0.8rem;
+        margin-top: 8px;
+      }
+
+      /* Steps */
+      ol.steps { counter-reset: step; list-style: none; padding: 0; margin: 0; }
+
+      ol.steps li {
+        counter-increment: step;
+        position: relative;
+        padding-left: 46px;
+        margin-bottom: 24px;
+      }
+
+      ol.steps li::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: 1px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: var(--panel-2);
+        border: 1px solid var(--edge);
+        color: var(--accent);
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: grid;
+        place-items: center;
+      }
+
+      ol.steps strong { font-weight: 600; }
+
+      ol.steps p { margin: 4px 0 0; color: var(--muted); font-size: 0.94rem; }
+
+      code {
+        background: var(--panel-2);
+        border: 1px solid var(--edge);
+        border-radius: 5px;
+        padding: 1px 6px;
+        font-size: 0.86em;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+        color: var(--text);
+      }
+
+      pre {
+        background: var(--panel);
+        border: 1px solid var(--edge);
+        border-radius: 10px;
+        padding: 14px 16px;
+        overflow-x: auto;
+        font-size: 0.86rem;
+        font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      }
+
+      pre code { background: none; border: 0; padding: 0; }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--edge);
+        border-radius: 12px;
+        padding: 18px 20px;
+      }
+
+      .card h3 { margin: 0 0 6px; font-size: 0.98rem; }
+      .card p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+      .note {
+        border-left: 2px solid var(--accent);
+        padding: 2px 0 2px 16px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      footer {
+        padding: 40px 0 64px;
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      footer a { color: var(--muted); }
+
+      a { color: var(--accent); }
+
+      .spec {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        color: var(--muted);
+        font-size: 0.86rem;
+        margin-top: 10px;
+        padding: 0;
+        list-style: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div class="wrap">
+        <h1>Desk Wick</h1>
+        <p class="tagline">
+          A touchscreen market terminal and macropad that sits on your desk.
+          Flash it, plug in a screen, and it boots straight into the UI.
+        </p>
+
+        <div class="cta">
+          <a
+            class="btn"
+            href="https://github.com/chickenswaffle/deskwick-releases/releases/latest/download/deskwick.img.xz"
+          >
+            ↓ Download image
+          </a>
+          <a
+            class="btn btn-ghost"
+            href="https://github.com/chickenswaffle/deskwick-releases/releases/latest"
+          >
+            Release notes &amp; checksum
+          </a>
+        </div>
+
+        <p class="meta">
+          <code>.img.xz</code> for Raspberry Pi Imager · 64-bit ·
+          built on Raspberry Pi OS (Trixie)
+        </p>
+
+        <ul class="spec">
+          <li>Raspberry Pi 4 or 5</li>
+          <li>800×480 or 1024×600 touchscreen</li>
+          <li>8GB+ card</li>
+        </ul>
+      </div>
+    </header>
+
+    <section>
+      <div class="wrap">
+        <h2>What it does</h2>
+        <p class="lede">
+          Everything on screen is a tile in a grid you lay out yourself. A tile
+          is a live quote or a macro button — swipe between pages of them.
+        </p>
+
+        <div class="shots">
+          <figure>
+            <img src="shots/markets.png" alt="Grid of live quote tiles" />
+            <figcaption>Quote tiles — price, change, sparkline, staleness.</figcaption>
+          </figure>
+          <figure>
+            <img src="shots/macropad.png" alt="Grid of large macro buttons" />
+            <figcaption>Macro page — destructive buttons need a press-and-hold.</figcaption>
+          </figure>
+          <figure>
+            <img src="shots/editor.png" alt="Drag and drop layout editor" />
+            <figcaption>Editor — drag tiles and bind macros from any browser.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Flash it</h2>
+        <p class="lede">
+          Takes about five minutes. You don't need to unzip the download —
+          Imager reads <code>.img.xz</code> directly.
+        </p>
+
+        <ol class="steps">
+          <li>
+            <strong>Open Raspberry Pi Imager</strong> and choose your Pi model
+            and SD card.
+            <p>
+              Under <em>Operating System</em>, scroll to the bottom and pick
+              <em>Use custom</em>, then select the downloaded
+              <code>deskwick.img.xz</code>.
+            </p>
+          </li>
+          <li>
+            <strong>Fill in Imager's customisation dialog.</strong>
+            <p>
+              Set a username and password, your WiFi, and enable SSH. This is
+              the important step — none of that is baked into the image, so the
+              Pi has no way onto your network without it.
+            </p>
+          </li>
+          <li>
+            <strong>Write, then boot the Pi with the screen attached.</strong>
+            <p>
+              First boot takes a couple of minutes while it expands the
+              filesystem and configures itself. It reboots once, then comes up
+              in the terminal — no desktop, no cursor, no browser chrome.
+            </p>
+          </li>
+        </ol>
+
+        <p class="note">
+          Out of the box it runs on simulated market data, so you can confirm
+          everything works before setting up an API key.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Set it up</h2>
+        <p class="lede">
+          Both of these are done from another machine — the Pi's IP or
+          hostname on port 8080.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Lay out your tiles</h3>
+            <p>
+              Open <code>http://&lt;pi&gt;:8080/editor</code> in a normal
+              browser. Drag tiles, set symbols, bind macro keystrokes. Changes
+              appear on the device immediately.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Add live prices</h3>
+            <p>
+              Put a free
+              <a href="https://finnhub.io/register">Finnhub</a> key in
+              <code>/opt/deskwick/backend/.env</code> and restart, and the
+              simulated data is replaced with real quotes.
+            </p>
+          </div>
+        </div>
+
+        <pre><code>ssh &lt;user&gt;@&lt;pi&gt;
+sudo nano /opt/deskwick/backend/.env     # FINNHUB_API_KEY=...
+sudo systemctl restart deskwick</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Driving your computer</h2>
+        <p class="lede">
+          Macro buttons send keystrokes to the machine you actually work on.
+          Two ways, and you can use both at once — it's set per button.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Over USB</h3>
+            <p>
+              The Pi presents itself as a real USB keyboard, so there's nothing
+              to install on the other machine. Cable its USB-C port to your
+              computer and power the Pi from the GPIO pins instead.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Over the network</h3>
+            <p>
+              Run the small companion agent on the target machine and point the
+              Pi at it. No cables, and it can drive more than one computer.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="wrap">
+        <p>
+          Built for personal use. Market data comes from free API tiers, which
+          are licensed for personal, non-commercial use.
+        </p>
+        <p>
+          <a href="https://github.com/chickenswaffle/deskwick-releases">Releases</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
