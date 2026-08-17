@@ -27,16 +27,22 @@ die() { echo "error: $*" >&2; exit 1; }
 # partition that mounts on any machine.
 command -v openssl >/dev/null || die "openssl not found; needed to hash the password"
 
-read -rp "username: " USER_NAME
-[[ -n $USER_NAME ]] || die "a username is required"
+# The image already ships a user-data that creates a passwordless "deskwick"
+# account, which is enough for the kiosk to come up on its own. Answering blank
+# here leaves that alone and only touches WiFi — the common case is wanting a
+# password so you can SSH in, not wanting a different account.
+echo "Leave the username blank to keep the image's own passwordless account."
+read -rp "username [keep]: " USER_NAME
 
-read -rsp "password: " USER_PASS; echo
-[[ -n $USER_PASS ]] || die "a password is required"
-read -rsp "password (again): " USER_PASS2; echo
-[[ $USER_PASS == "$USER_PASS2" ]] || die "passwords don't match"
+if [[ -n $USER_NAME ]]; then
+  read -rsp "password: " USER_PASS; echo
+  [[ -n $USER_PASS ]] || die "a password is required"
+  read -rsp "password (again): " USER_PASS2; echo
+  [[ $USER_PASS == "$USER_PASS2" ]] || die "passwords don't match"
 
-read -rp "hostname [deskwick]: " HOSTNAME_
-HOSTNAME_="${HOSTNAME_:-deskwick}"
+  read -rp "hostname [deskwick]: " HOSTNAME_
+  HOSTNAME_="${HOSTNAME_:-deskwick}"
+fi
 
 read -rp "WiFi SSID (blank for Ethernet only): " WIFI_SSID
 if [[ -n $WIFI_SSID ]]; then
@@ -45,9 +51,10 @@ if [[ -n $WIFI_SSID ]]; then
   WIFI_COUNTRY="${WIFI_COUNTRY:-US}"
 fi
 
-PASS_HASH="$(openssl passwd -6 "$USER_PASS")"
+if [[ -n $USER_NAME ]]; then
+  PASS_HASH="$(openssl passwd -6 "$USER_PASS")"
 
-cat > "$BOOTFS/user-data" <<EOF
+  cat > "$BOOTFS/user-data" <<EOF
 #cloud-config
 # Written by Desk Wick configure-card.sh.
 
@@ -63,6 +70,7 @@ users:
 
 ssh_pwauth: true
 EOF
+fi
 
 if [[ -n $WIFI_SSID ]]; then
   cat > "$BOOTFS/network-config" <<EOF
@@ -82,7 +90,11 @@ EOF
 fi
 
 echo
-echo "wrote $BOOTFS/user-data"
+if [[ -n $USER_NAME ]]; then
+  echo "wrote $BOOTFS/user-data"
+else
+  echo "left $BOOTFS/user-data alone (image's own account)"
+fi
 if [[ -n $WIFI_SSID ]]; then
   echo "wrote $BOOTFS/network-config"
 fi

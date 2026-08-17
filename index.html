@@ -308,9 +308,9 @@
       <div class="wrap">
         <h2>Flash it</h2>
         <p class="lede">
-          Takes about five minutes. You don't need to unzip the download —
-          Imager reads <code>.img.xz</code> directly. There's no account or WiFi
-          baked into the image, so you set those up yourself in step 2.
+          Takes about five minutes, and there's nothing to fill in. You don't
+          need to unzip the download — Imager reads <code>.img.xz</code>
+          directly.
         </p>
 
         <ol class="steps">
@@ -322,45 +322,32 @@
               downloaded <code>deskwick.img.xz</code>. Write it.
             </p>
             <p>
-              Imager's <em>OS customisation</em> step will be greyed out. That's
-              expected — since Imager 2.0 it only customises images it downloads
-              itself, never a custom one. Step 2 does the same job by hand.
+              Imager's <em>OS customisation</em> step will be greyed out — since
+              Imager 2.0 it only customises images it downloaded itself. Nothing
+              to do: the image sets up its own account.
             </p>
           </li>
           <li>
-            <strong>Create your account on the card.</strong>
+            <strong>Boot the Pi with the screen attached.</strong>
             <p>
-              Pull the card out and put it back in. A small FAT volume called
-              <code>bootfs</code> mounts. Open <code>user-data</code> on it — a
-              cloud-init file that ships as nothing but commented examples — and
-              replace it with:
-            </p>
-            <pre><code>#cloud-config
-hostname: deskwick
-users:
-  - name: <em>you</em>
-    groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
-    shell: /bin/bash
-    lock_passwd: false
-    passwd: <em>$6$…hashed…</em>
-    sudo: ALL=(ALL) NOPASSWD:ALL
-ssh_pwauth: true</code></pre>
-            <p>
-              Generate the hash with <code>openssl passwd -6</code>. To reach
-              the Pi over SSH with a key instead, add an
-              <code>ssh_authorized_keys:</code> list and drop the
-              <code>passwd</code> line.
-            </p>
-            <p>
-              On macOS or Linux you can skip the editing:
-              <a href="configure-card.sh">configure-card.sh</a> asks for the
-              same details and writes both files onto the card for you.
+              First boot takes a couple of minutes while it expands the
+              filesystem and configures itself. It reboots once, then comes up
+              in the terminal — no desktop, no cursor, no browser chrome —
+              running on simulated market data.
             </p>
           </li>
           <li>
-            <strong>Add WiFi, unless you're on Ethernet.</strong>
+            <strong>Give it WiFi, if it isn't on Ethernet.</strong>
             <p>
-              Same volume, the <code>network-config</code> file next to it:
+              Before that first boot, put the card back in your computer and run
+              <a href="configure-card.sh">configure-card.sh</a> against the
+              <code>bootfs</code> volume that mounts. It asks for your network,
+              and for a password if you want to SSH in, and writes the two
+              cloud-init files the Pi reads on boot.
+            </p>
+            <p>
+              To do it by hand instead, that's <code>network-config</code> on
+              the same volume:
             </p>
             <pre><code>network:
   version: 2
@@ -374,20 +361,17 @@ ssh_pwauth: true</code></pre>
         "<em>Your Network</em>":
           password: "<em>your-passphrase</em>"</code></pre>
           </li>
-          <li>
-            <strong>Eject, then boot the Pi with the screen attached.</strong>
-            <p>
-              First boot takes a couple of minutes while it expands the
-              filesystem and configures itself. It reboots once, then comes up
-              in the terminal — no desktop, no cursor, no browser chrome.
-            </p>
-          </li>
         </ol>
 
         <p class="note">
-          Out of the box it runs on simulated market data, so you can confirm
-          everything works before setting up an API key.
+          The account it makes is <code>deskwick</code>, with no password at
+          all — the screen logs itself in, and there's nothing to guess from a
+          public download. That also means no SSH until you set a password or
+          add a key, which is what <code>configure-card.sh</code> is for. It
+          rewrites <code>user-data</code>, so you can give the account a
+          different name there too.
         </p>
+
       </div>
     </section>
 
