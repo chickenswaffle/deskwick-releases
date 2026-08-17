@@ -116,6 +116,11 @@
 
       figure { margin: 0; }
 
+      /* The editor is a desktop browser view, not the panel — it reads badly at
+         device-tile width, so it gets its own row. */
+      figure.wide { grid-column: 1 / -1; }
+      figure.wide img { max-width: 720px; }
+
       figure img {
         width: 100%;
         display: block;
@@ -182,6 +187,9 @@
       }
 
       pre code { background: none; border: 0; padding: 0; }
+
+      /* Placeholders inside a snippet: the bits you replace. */
+      pre em { color: var(--accent); font-style: italic; }
 
       .grid-2 {
         display: grid;
@@ -270,8 +278,9 @@
       <div class="wrap">
         <h2>What it does</h2>
         <p class="lede">
-          Everything on screen is a tile in a grid you lay out yourself. A tile
-          is a live quote or a macro button — swipe between pages of them.
+          Everything on screen is a tile in a grid you lay out yourself — a live
+          quote, an ASCII chart, a clock, a macro button, a jump to another
+          page. Swipe between pages of them.
         </p>
 
         <div class="shots">
@@ -280,11 +289,15 @@
             <figcaption>Quote tiles — price, change, sparkline, staleness.</figcaption>
           </figure>
           <figure>
+            <img src="shots/desk.png" alt="ASCII candlestick chart beside a clock and a page jump tile" />
+            <figcaption>Chart, clock and page jump — same grid, no separate screens.</figcaption>
+          </figure>
+          <figure>
             <img src="shots/macropad.png" alt="Grid of large macro buttons" />
             <figcaption>Macro page — destructive buttons need a press-and-hold.</figcaption>
           </figure>
-          <figure>
-            <img src="shots/editor.png" alt="Drag and drop layout editor" />
+          <figure class="wide">
+            <img src="shots/editor.png" alt="Drag and drop layout editor with a macro tile selected" />
             <figcaption>Editor — drag tiles and bind macros from any browser.</figcaption>
           </figure>
         </div>
@@ -296,29 +309,73 @@
         <h2>Flash it</h2>
         <p class="lede">
           Takes about five minutes. You don't need to unzip the download —
-          Imager reads <code>.img.xz</code> directly.
+          Imager reads <code>.img.xz</code> directly. There's no account or WiFi
+          baked into the image, so you set those up yourself in step 2.
         </p>
 
         <ol class="steps">
           <li>
-            <strong>Open Raspberry Pi Imager</strong> and choose your Pi model
-            and SD card.
+            <strong>Write the image with Raspberry Pi Imager.</strong>
             <p>
-              Under <em>Operating System</em>, scroll to the bottom and pick
-              <em>Use custom</em>, then select the downloaded
-              <code>deskwick.img.xz</code>.
+              Choose your Pi model and SD card. Under <em>Operating System</em>,
+              scroll to the bottom, pick <em>Use custom</em>, and select the
+              downloaded <code>deskwick.img.xz</code>. Write it.
+            </p>
+            <p>
+              Imager's <em>OS customisation</em> step will be greyed out. That's
+              expected — since Imager 2.0 it only customises images it downloads
+              itself, never a custom one. Step 2 does the same job by hand.
             </p>
           </li>
           <li>
-            <strong>Fill in Imager's customisation dialog.</strong>
+            <strong>Create your account on the card.</strong>
             <p>
-              Set a username and password, your WiFi, and enable SSH. This is
-              the important step — none of that is baked into the image, so the
-              Pi has no way onto your network without it.
+              Pull the card out and put it back in. A small FAT volume called
+              <code>bootfs</code> mounts. Open <code>user-data</code> on it — a
+              cloud-init file that ships as nothing but commented examples — and
+              replace it with:
+            </p>
+            <pre><code>#cloud-config
+hostname: deskwick
+users:
+  - name: <em>you</em>
+    groups: users,adm,dialout,audio,netdev,video,plugdev,cdrom,games,input,gpio,spi,i2c,render,sudo
+    shell: /bin/bash
+    lock_passwd: false
+    passwd: <em>$6$…hashed…</em>
+    sudo: ALL=(ALL) NOPASSWD:ALL
+ssh_pwauth: true</code></pre>
+            <p>
+              Generate the hash with <code>openssl passwd -6</code>. To reach
+              the Pi over SSH with a key instead, add an
+              <code>ssh_authorized_keys:</code> list and drop the
+              <code>passwd</code> line.
+            </p>
+            <p>
+              On macOS or Linux you can skip the editing:
+              <a href="configure-card.sh">configure-card.sh</a> asks for the
+              same details and writes both files onto the card for you.
             </p>
           </li>
           <li>
-            <strong>Write, then boot the Pi with the screen attached.</strong>
+            <strong>Add WiFi, unless you're on Ethernet.</strong>
+            <p>
+              Same volume, the <code>network-config</code> file next to it:
+            </p>
+            <pre><code>network:
+  version: 2
+  wifis:
+    renderer: NetworkManager
+    wlan0:
+      dhcp4: true
+      optional: true
+      regulatory-domain: "<em>US</em>"
+      access-points:
+        "<em>Your Network</em>":
+          password: "<em>your-passphrase</em>"</code></pre>
+          </li>
+          <li>
+            <strong>Eject, then boot the Pi with the screen attached.</strong>
             <p>
               First boot takes a couple of minutes while it expands the
               filesystem and configures itself. It reboots once, then comes up

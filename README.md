@@ -8,10 +8,15 @@ and macropad that boots straight into a full-screen touch UI.
 ## Quick version
 
 1. Grab `deskwick.img.xz` from [the latest release](../../releases/latest).
-2. In Raspberry Pi Imager: *Use custom* → select the file.
-3. Fill in Imager's customisation dialog — username, WiFi, SSH. None of that is
-   baked into the image, so the Pi can't reach your network without it.
-4. Write, boot with the screen attached, wait through one automatic reboot.
+2. In Raspberry Pi Imager: *Use custom* → select the file → write. Imager's
+   customisation dialog stays greyed out; from Imager 2.0 it only customises
+   images Imager downloaded itself.
+3. Reinsert the card and set up the account and WiFi yourself, in the cloud-init
+   files on the `bootfs` volume: `user-data` and `network-config`. Either run
+   [`configure-card.sh`](configure-card.sh), or edit them by hand following the
+   [download page](https://chickenswaffle.github.io/deskwick-releases/). None of
+   it is baked into the image, so the Pi can't reach your network without it.
+4. Eject, boot with the screen attached, wait through one automatic reboot.
 
 Runs on simulated market data until you add an API key, so you can confirm the
 device works before setting anything up.
