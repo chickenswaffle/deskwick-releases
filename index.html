@@ -96,6 +96,31 @@
         margin-top: 14px;
       }
 
+      /* Which build is behind that button. Filled in live from the GitHub
+         releases API; the markup ships with the current values so the line
+         still reads correctly if the request is blocked or rate-limited. */
+      .build {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 8px;
+        margin-top: 16px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .build-tag {
+        color: var(--text);
+        font-weight: 640;
+        border: 1px solid var(--edge);
+        background: var(--panel-2);
+        border-radius: 6px;
+        padding: 3px 9px;
+        font-size: 0.88rem;
+      }
+
+      .build-sep { opacity: 0.45; }
+
       /* Sections */
       section { padding: 56px 0; border-bottom: 1px solid var(--edge); }
 
@@ -260,6 +285,15 @@
             Release notes &amp; checksum
           </a>
         </div>
+
+        <p class="build" id="build">
+          Current build
+          <span class="build-tag" id="build-tag">v0.3.0</span>
+          <span class="build-sep">·</span>
+          <span id="build-date">released 17 August 2026</span>
+          <span class="build-sep">·</span>
+          <span id="build-size">1.5 GB</span>
+        </p>
 
         <p class="meta">
           <code>.img.xz</code> for Raspberry Pi Imager · 64-bit ·
@@ -455,5 +489,53 @@ sudo reboot</code></pre>
         </p>
       </div>
     </footer>
+    <script>
+      // The download button points at /releases/latest/download/, so the page
+      // has no idea what it is handing out. Ask the API and say so, rather
+      // than hard-coding a version that goes stale the next time one is cut.
+      //
+      // Only the release metadata is fetchable from here: api.github.com sends
+      // Access-Control-Allow-Origin, asset downloads do not, so the checksum
+      // stays behind the "Release notes & checksum" link.
+      (async () => {
+        const set = (id, text) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = text;
+        };
+
+        try {
+          const res = await fetch(
+            "https://api.github.com/repos/chickenswaffle/deskwick-releases/releases/latest",
+            { headers: { Accept: "application/vnd.github+json" } }
+          );
+          if (!res.ok) return; // leave the shipped values in place
+          const rel = await res.json();
+
+          if (rel.tag_name) set("build-tag", rel.tag_name);
+
+          if (rel.published_at) {
+            const when = new Date(rel.published_at);
+            if (!isNaN(when)) {
+              set(
+                "build-date",
+                "released " +
+                  when.toLocaleDateString(undefined, {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })
+              );
+            }
+          }
+
+          const img = (rel.assets || []).find((a) => a.name.endsWith(".img.xz"));
+          if (img && img.size) {
+            set("build-size", (img.size / 1e9).toFixed(1) + " GB");
+          }
+        } catch (err) {
+          // Offline, rate-limited, or blocked: the shipped values stand.
+        }
+      })();
+    </script>
   </body>
 </html>
