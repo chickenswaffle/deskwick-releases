@@ -313,8 +313,9 @@
         <h2>What it does</h2>
         <p class="lede">
           Everything on screen is a tile in a grid you lay out yourself — a live
-          quote, an ASCII chart, a clock, a macro button, a jump to another
-          page. Swipe between pages of them.
+          quote, a candlestick chart, a clock, a macro button, a gauge, a jump
+          to another page. Swipe between pages of them. Hold any tile to move
+          it, change its symbol, or throw it away.
         </p>
 
         <div class="shots">
@@ -334,6 +335,74 @@
             <img src="shots/editor.png" alt="Drag and drop layout editor with a macro tile selected" />
             <figcaption>Editor — drag tiles and bind macros from any browser.</figcaption>
           </figure>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Charts that go deeper</h3>
+            <p>
+              Tap a ticker for candles, with the usual indicators, timeframes
+              you can star as favourites, market open marked, and notes you pin
+              at a price. Pinch and drag to move around it.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Alerts that reach you</h3>
+            <p>
+              Above, below, crossings, percentage moves. They flash the tile,
+              sound through the panel's speakers, and show through the
+              screensaver — so they land while you are looking elsewhere.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Yours to look at</h3>
+            <p>
+              Themes including an animated matrix and a cyberpunk palette,
+              eight tile layouts, eight motions, border and glow effects,
+              bull/bear tinting, fonts and text sizes, and brightness.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Widgets</h3>
+            <p>
+              A store on the device: clocks, notepads, CPU and memory gauges,
+              micro-buttons. Widgets are written to a small Desk Wick format,
+              so what you add is described rather than executed.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>It keeps itself current</h2>
+        <p class="lede">
+          The image on this page is a starting point, not the newest build.
+          The device fetches app updates itself — flash it once and it catches
+          up.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>From the panel</h3>
+            <p>
+              <em>Settings → System → Check for updates</em>. It shows the
+              installed version, the published version, and when it last
+              looked, then downloads with a progress bar and swaps the new
+              build in. Tick <em>Update automatically</em> and it checks hourly
+              on its own.
+            </p>
+          </div>
+          <div class="card">
+            <h3>It will not reboot on you</h3>
+            <p>
+              An update installs in the background but never restarts by
+              itself — restarting somebody who is watching a position is not
+              a decision software should make. The new build waits for a tap.
+              If one fails to start, the device rolls back on its own.
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -371,17 +440,20 @@
             </p>
           </li>
           <li>
-            <strong>Give it WiFi, if it isn't on Ethernet.</strong>
+            <strong>Give it WiFi.</strong>
             <p>
-              Before that first boot, put the card back in your computer and run
-              <a href="configure-card.sh">configure-card.sh</a> against the
-              <code>bootfs</code> volume that mounts. It asks for your network,
-              and for a password if you want to SSH in, and writes the two
-              cloud-init files the Pi reads on boot.
+              On the device: <em>Settings → Network</em>. It scans, shows
+              signal strength, and asks for the passphrase on the on-screen
+              keyboard. Nothing to edit, no second computer.
             </p>
             <p>
-              To do it by hand instead, that's <code>network-config</code> on
-              the same volume:
+              If it has never been on a network at all and you would rather set
+              that up before first boot, put the card back in your computer and
+              run <a href="configure-card.sh">configure-card.sh</a> against the
+              <code>bootfs</code> volume that mounts. It asks for your network,
+              and for a password if you want to SSH in, and writes the two
+              cloud-init files the Pi reads on boot. By hand, that's
+              <code>network-config</code> on the same volume:
             </p>
             <pre><code>network:
   version: 2
@@ -413,17 +485,19 @@
       <div class="wrap">
         <h2>Set it up</h2>
         <p class="lede">
-          Both of these are done from another machine — the Pi's IP or
-          hostname on port 8080.
+          Laying out tiles works either on the panel or from a browser. The
+          API key still wants a text editor.
         </p>
 
         <div class="grid-2">
           <div class="card">
             <h3>Lay out your tiles</h3>
             <p>
-              Open <code>http://&lt;pi&gt;:8080/editor</code> in a normal
-              browser. Drag tiles, set symbols, bind macro keystrokes. Changes
-              appear on the device immediately.
+              On the device, tap the <strong>+</strong> on any page to add a
+              tile or a widget, and hold one to move, retarget or delete it.
+              For a keyboard and a bigger canvas, open
+              <code>http://&lt;pi&gt;:8080/editor</code> in a normal browser —
+              changes appear on the panel immediately.
             </p>
           </div>
           <div class="card">
