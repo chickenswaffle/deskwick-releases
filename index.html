@@ -121,6 +121,12 @@
 
       .build-sep { opacity: 0.45; }
 
+      /* The app line sits directly under the image line: same shape, but it
+         is a footnote to it rather than a second announcement. */
+      .build-app { margin-top: 6px; font-size: 0.84rem; }
+
+      .build-app .build-tag { font-size: 0.82rem; padding: 2px 8px; }
+
       /* Sections */
       section { padding: 56px 0; border-bottom: 1px solid var(--edge); }
 
@@ -287,12 +293,21 @@
         </div>
 
         <p class="build" id="build">
-          Current build
+          Image
           <span class="build-tag" id="build-tag">v0.3.0</span>
           <span class="build-sep">·</span>
           <span id="build-date">released 17 August 2026</span>
           <span class="build-sep">·</span>
           <span id="build-size">1.5 GB</span>
+        </p>
+
+        <p class="build build-app" id="build-app">
+          App
+          <span class="build-tag" id="app-tag">v2.2.2</span>
+          <span class="build-sep">·</span>
+          <span id="app-date">released 27 August 2026</span>
+          <span class="build-sep">·</span>
+          <span>the device updates itself to this</span>
         </p>
 
         <p class="meta">
@@ -357,9 +372,11 @@
           <div class="card">
             <h3>Yours to look at</h3>
             <p>
-              Themes including an animated matrix and a cyberpunk palette,
-              eight tile layouts, eight motions, border and glow effects,
-              bull/bear tinting, fonts and text sizes, and brightness.
+              Seven themes including an animated matrix and a cyberpunk
+              palette, eight tile layouts, eight motions, tile edges from a
+              plain rule to a phosphor rim that tears sideways every few
+              seconds, bull/bear tinting, fonts and text sizes, and
+              brightness.
             </p>
           </div>
           <div class="card">
@@ -368,6 +385,16 @@
               A store on the device: clocks, notepads, CPU and memory gauges,
               micro-buttons. Widgets are written to a small Desk Wick format,
               so what you add is described rather than executed.
+            </p>
+          </div>
+          <div class="card">
+            <h3>It demonstrates itself</h3>
+            <p>
+              <em>Settings → System → Demo</em> runs a hands-free tour: it
+              flicks through the themes naming each, cycles the tile edges,
+              steps the type size, and switches indicators on over a live
+              chart. It drives the real interface rather than playing a
+              recording, saves nothing it touches, and exits on the first tap.
             </p>
           </div>
         </div>
@@ -399,8 +426,10 @@
             <p>
               An update installs in the background but never restarts by
               itself — restarting somebody who is watching a position is not
-              a decision software should make. The new build waits for a tap.
-              If one fails to start, the device rolls back on its own.
+              a decision software should make. The new build waits for a tap,
+              and the panel reloads into it when you give one, rather than
+              leaving new code installed behind a page still running the old.
+              If a build fails to start, the device rolls back on its own.
             </p>
           </div>
         </div>
@@ -514,6 +543,15 @@
         <pre><code>ssh &lt;user&gt;@&lt;pi&gt;
 sudo nano /opt/deskwick/backend/.env     # FINNHUB_API_KEY=...
 sudo systemctl restart deskwick</code></pre>
+
+        <p class="note">
+          A browser off the device asks for a token the first time — the panel
+          itself is trusted because it runs there, but nothing else is.
+          Read it off the screen under <em>Settings → System → Remote
+          access</em> and paste it in. It is deliberately not fetchable over
+          the network, so standing in front of the panel is the credential;
+          a rotate button beside it cuts off anything still holding an old one.
+        </p>
       </div>
     </section>
 
@@ -572,43 +610,69 @@ sudo reboot</code></pre>
       // Access-Control-Allow-Origin, asset downloads do not, so the checksum
       // stays behind the "Release notes & checksum" link.
       (async () => {
+        const API =
+          "https://api.github.com/repos/chickenswaffle/deskwick-releases/releases";
+        const HEADERS = { Accept: "application/vnd.github+json" };
+
         const set = (id, text) => {
           const el = document.getElementById(id);
           if (el) el.textContent = text;
         };
 
-        try {
-          const res = await fetch(
-            "https://api.github.com/repos/chickenswaffle/deskwick-releases/releases/latest",
-            { headers: { Accept: "application/vnd.github+json" } }
+        const released = (iso) => {
+          const when = new Date(iso);
+          if (isNaN(when)) return null;
+          return (
+            "released " +
+            when.toLocaleDateString(undefined, {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })
           );
+        };
+
+        // Two different things ship from this repo under one release list.
+        // The image is the download button, cut rarely, and is the repo's
+        // "latest" because it is the only line that is not a pre-release.
+        // The app is cut constantly and is what the device pulls on its own,
+        // so it has to be read out of the full list by tag prefix.
+        const image = async () => {
+          const res = await fetch(API + "/latest", { headers: HEADERS });
           if (!res.ok) return; // leave the shipped values in place
           const rel = await res.json();
 
           if (rel.tag_name) set("build-tag", rel.tag_name);
 
-          if (rel.published_at) {
-            const when = new Date(rel.published_at);
-            if (!isNaN(when)) {
-              set(
-                "build-date",
-                "released " +
-                  when.toLocaleDateString(undefined, {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })
-              );
-            }
-          }
+          const when = rel.published_at && released(rel.published_at);
+          if (when) set("build-date", when);
 
           const img = (rel.assets || []).find((a) => a.name.endsWith(".img.xz"));
           if (img && img.size) {
             set("build-size", (img.size / 1e9).toFixed(1) + " GB");
           }
-        } catch (err) {
-          // Offline, rate-limited, or blocked: the shipped values stand.
-        }
+        };
+
+        const app = async () => {
+          // Sorted newest-first by the API, so the first app tag wins. One
+          // page is plenty: app releases are frequent enough that the newest
+          // is never thirty releases down.
+          const res = await fetch(API + "?per_page=30", { headers: HEADERS });
+          if (!res.ok) return;
+          const rel = (await res.json()).find(
+            (r) => typeof r.tag_name === "string" && r.tag_name.startsWith("app-v")
+          );
+          if (!rel) return;
+
+          set("app-tag", rel.tag_name.replace(/^app-/, ""));
+
+          const when = rel.published_at && released(rel.published_at);
+          if (when) set("app-date", when);
+        };
+
+        // Independent: a rate-limited or failed request for one should not
+        // blank the other, and neither failing should blank the markup.
+        await Promise.allSettled([image(), app()]);
       })();
     </script>
   </body>

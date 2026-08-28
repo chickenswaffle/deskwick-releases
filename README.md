@@ -20,12 +20,23 @@ and macropad that boots straight into a full-screen touch UI.
 Runs on simulated market data until you add an API key, so you can confirm the
 device works before setting anything up.
 
+The image is a starting point, not the newest build — the device updates its own
+app from this repo's `app-v*` releases. *Settings → System → Update*, or tick
+*Update automatically*.
+
 ## What's on the image
 
 - Raspberry Pi OS (Trixie, 64-bit) with the Desk Wick service preinstalled at
   `/opt/deskwick`
 - Kiosk autostart under labwc, screen blanking disabled
 - USB HID gadget support for driving another computer as a keyboard
+
+## Reaching it from another browser
+
+The editor at `http://<pi>:8080/editor` — and anything else that is not the
+panel itself — needs the device's token. Read it off the screen under *Settings
+→ System → Remote access*; it is not fetchable over the network, so the panel in
+front of you is the only place to get one.
 
 ## Requirements
 
